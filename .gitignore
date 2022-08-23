@@ -325,3 +325,5 @@ tags
 .pytest_cache/
 db/
 .idea/
+.env*
+credentials*
