@@ -58,6 +58,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "calendar_audit.middleware.JWTMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

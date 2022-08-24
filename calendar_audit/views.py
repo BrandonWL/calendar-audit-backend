@@ -17,19 +17,22 @@ if TYPE_CHECKING:
 
     from django.http import HttpRequest
 
-# TODO: verify id_token at protected endpoints
+
 class AuditView(View):
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        JsonResponse([])
+        user = User.objects.filter(username=request.username).first()
+        events = Event.objects.filter(user=user).values()
+        return JsonResponse({"events": list(events)})
 
 
 class AuthView(View):
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         data = json.loads(request.body)
 
-        credentials = get_credentials(data["code"])
+        credentials, id_token = get_credentials(data["code"])
+
         decoded = jwt.decode(
-            credentials.id_token,
+            id_token,
             algorithms=["RS256"],
             options={"verify_signature": False},
         )
@@ -57,4 +60,4 @@ class AuthView(View):
                     "summary": event["summary"],
                 },
             )
-        return JsonResponse({"id_token": credentials.id_token})
+        return JsonResponse({"id_token": id_token})

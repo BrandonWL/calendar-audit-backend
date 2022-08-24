@@ -327,3 +327,4 @@ db/
 .idea/
 .env*
 credentials*
+token*

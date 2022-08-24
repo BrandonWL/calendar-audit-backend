@@ -28,7 +28,7 @@ CLIENT_SECRET = env("CLIENT_SECRET")
 REDIRECT_URI = env("REDIRECT_URI")
 
 
-def get_credentials(code: str) -> Credentials:
+def get_credentials(code: str) -> tuple[Credentials, str]:
 
     # get refresh token/access token from access code
     url = "https://oauth2.googleapis.com/token"
@@ -45,14 +45,16 @@ def get_credentials(code: str) -> Credentials:
     response = request("POST", url, data=data, headers=headers)
     data = response.json()
 
-    return Credentials(
-        None,
-        refresh_token=data["refresh_token"],
-        id_token=data["id_token"],
-        token_uri="https://accounts.google.com/o/oauth2/token",
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET,
-        scopes=SCOPES,
+    return (
+        Credentials(
+            None,
+            refresh_token=data["refresh_token"],
+            token_uri="https://accounts.google.com/o/oauth2/token",
+            client_id=CLIENT_ID,
+            client_secret=CLIENT_SECRET,
+            scopes=SCOPES,
+        ),
+        data["id_token"],  # have to return tuple. class Credentials bug
     )
 
     # # creds = None
@@ -93,69 +95,3 @@ def get_events(credentials: Credentials) -> None:
         return
 
     return events
-
-
-if __name__ == "__main__":
-    code = "4/0AdQt8qiAZMzMctbWYepH-d-EpuucRkwWwSKi1Etz4tH_RbacEkjtonSxniUB1GYVu07xfQ"
-    get_events(code)
-
-
-# # 1
-# {
-#     "kind": "calendar#event",
-#     "etag": '"3322415240808000"',
-#     "id": "0omql2q5s2nml19b93nq5u7r0j",
-#     "status": "confirmed",
-#     "htmlLink": "https://www.google.com/calendar/event?eid=MG9tcWwycTVzMm5tbDE5YjkzbnE1dTdyMGogYXRvbWljZGVmaW5pdGlvbkBt",
-#     "created": "2022-08-22T22:33:40.000Z",
-#     "updated": "2022-08-22T22:33:40.404Z",
-#     "summary": "1",
-#     "creator": {"email": "atomicdefinition@gmail.com", "self": True},
-#     "organizer": {"email": "atomicdefinition@gmail.com", "self": True},
-#     "start": {"dateTime": "2022-08-23T06:15:00-07:00", "timeZone": "America/New_York"},
-#     "end": {"dateTime": "2022-08-23T08:00:00-07:00", "timeZone": "America/New_York"},
-#     "iCalUID": "0omql2q5s2nml19b93nq5u7r0j@google.com",
-#     "sequence": 0,
-#     "reminders": {"useDefault": True},
-#     "eventType": "default",
-# }
-
-# # 2
-# {
-#     "kind": "calendar#event",
-#     "etag": '"3322600259102000"',
-#     "id": "0omql2q5s2nml19b93nq5u7r0j",
-#     "status": "confirmed",
-#     "htmlLink": "https://www.google.com/calendar/event?eid=MG9tcWwycTVzMm5tbDE5YjkzbnE1dTdyMGogYXRvbWljZGVmaW5pdGlvbkBt",
-#     "created": "2022-08-22T22:33:40.000Z",
-#     "updated": "2022-08-24T00:15:29.551Z",
-#     "summary": "1",
-#     "creator": {"email": "atomicdefinition@gmail.com", "self": True},
-#     "organizer": {"email": "atomicdefinition@gmail.com", "self": True},
-#     "start": {"dateTime": "2022-08-23T06:30:00-07:00", "timeZone": "America/New_York"},
-#     "end": {"dateTime": "2022-08-23T08:15:00-07:00", "timeZone": "America/New_York"},
-#     "iCalUID": "0omql2q5s2nml19b93nq5u7r0j@google.com",
-#     "sequence": 1,
-#     "reminders": {"useDefault": True},
-#     "eventType": "default",
-# }
-
-# # 3
-# {
-#     "kind": "calendar#event",
-#     "etag": '"3322600360571000"',
-#     "id": "0omql2q5s2nml19b93nq5u7r0j",
-#     "status": "confirmed",
-#     "htmlLink": "https://www.google.com/calendar/event?eid=MG9tcWwycTVzMm5tbDE5YjkzbnE1dTdyMGogYXRvbWljZGVmaW5pdGlvbkBt",
-#     "created": "2022-08-22T22:33:40.000Z",
-#     "updated": "2022-08-24T00:16:20.361Z",
-#     "summary": "1",
-#     "creator": {"email": "atomicdefinition@gmail.com", "self": True},
-#     "organizer": {"email": "atomicdefinition@gmail.com", "self": True},
-#     "start": {"date": "2022-08-23"},
-#     "end": {"date": "2022-08-24"},
-#     "iCalUID": "0omql2q5s2nml19b93nq5u7r0j@google.com",
-#     "sequence": 2,
-#     "reminders": {"useDefault": False},
-#     "eventType": "default",
-# }
