@@ -1,4 +1,5 @@
 import jwt
+from django.contrib.auth.models import User
 
 
 class JWTMiddleware:
@@ -19,6 +20,7 @@ class JWTMiddleware:
 
             request.id_token = id_token
             request.username = sub
+            request.user = User.objects.filter(username=request.username).first()
 
         response = self.get_response(request)
 

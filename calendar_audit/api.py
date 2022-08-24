@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 import environ
 import jwt
+from django.utils.dateparse import parse_datetime
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow, InstalledAppFlow
@@ -57,17 +58,11 @@ def get_credentials(code: str) -> tuple[Credentials, str]:
         data["id_token"],  # have to return tuple. class Credentials bug
     )
 
-    # # creds = None
-    # # # The file token.json stores the user's access and refresh tokens, and is
-    # # # created automatically when the authorization flow completes for the first
-    # # # time.
-    # # if os.path.exists("token2.json"):
-    # #     creds = Credentials.from_authorized_user_file("token2.json", SCOPES)
 
-    # creds = get_credentials(code)
-
-    # with open("token2.json", "w") as token:
-    #     token.write(creds.to_json())
+def duration(end: datetime, start: datetime):
+    timediff = end - start
+    timediff_in_s = timediff.total_seconds()
+    return timediff_in_s / 3600
 
 
 def get_events(credentials: Credentials) -> None:
@@ -81,8 +76,8 @@ def get_events(credentials: Credentials) -> None:
         service.events()
         .list(
             calendarId="primary",
-            timeMax=now,
-            maxResults=100,
+            timeMin=user.last_updated,
+            maxResults=1000,
             singleEvents=True,
             orderBy="updated",
         )
@@ -94,4 +89,26 @@ def get_events(credentials: Credentials) -> None:
     if not events:
         return
 
-    return events
+    filtered_events = []
+    for event in events:
+        # Is less than 8 hours long.
+        start = (
+            event["start"]["dateTime"]
+            if "dateTime" in event["start"]
+            else event["start"]["date"]
+        )
+        end = (
+            event["end"]["dateTime"]
+            if "dateTime" in event["end"]
+            else event["end"]["date"]
+        )
+        start_date, end_date = parse_datetime(start), parse_datetime(end)
+        total_time = duration(end_date, start_date)
+
+        # TODO: filter based on:
+        # You RSVP’d "Yes" to attend.
+        # filter attendees[].additionalGuests > 0
+        if total_time <= 8:
+            filtered_events += [event]
+
+    return filtered_events
